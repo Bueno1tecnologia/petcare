@@ -75,6 +75,32 @@ export default function PetsPage() {
     setSaving(false)
   }
 
+  async function deletePet(pet: Pet) {
+    if (!window.confirm('Excluir "' + pet.name + '" e todos os registros e documentos dele? Esta ação não pode ser desfeita.')) return
+    setMessage('')
+    const { data: docs, error: docsError } = await supabase
+      .from('pet_documents')
+      .select('file_path')
+      .eq('pet_id', pet.id)
+    if (docsError) {
+      setMessage(docsError.message)
+      return
+    }
+    const paths = (docs ?? []).map((d) => d.file_path as string)
+    if (paths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from('pet-documents')
+        .remove(paths)
+      if (storageError) {
+        setMessage(storageError.message)
+        return
+      }
+    }
+    const { error } = await supabase.from('pets').delete().eq('id', pet.id)
+    if (error) setMessage(error.message)
+    else setPets((prev) => prev.filter((p) => p.id !== pet.id))
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut()
     router.replace('/login')
@@ -154,7 +180,7 @@ export default function PetsPage() {
         )}
         {pets.map((pet) => (
           <li key={pet.id} className="rounded border p-4">
-            <Link href={`/pets/${pet.id}`} className="font-semibold underline">{pet.name}</Link>
+            <Link href={`/pets/${pet.id}`} className="font-semibold underline">{pet.name}</Link><button type="button" onClick={() => deletePet(pet)} className="ml-3 text-sm text-red-600 underline">Excluir</button>
             <p className="text-sm">
               {pet.species}
               {pet.breed ? ` · ${pet.breed}` : ''}
@@ -171,5 +197,6 @@ export default function PetsPage() {
     </main>
   )
 }
+
 
 

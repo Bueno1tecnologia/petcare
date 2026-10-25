@@ -92,6 +92,24 @@ export default function PetDocuments({ petId }: { petId: string }) {
     setUploading(false)
   }
 
+  async function deleteDoc(d: Doc) {
+    if (!window.confirm('Excluir "' + d.file_name + '"? Esta ação não pode ser desfeita.')) return
+    setMessage('')
+    const { error: storageError } = await supabase.storage
+      .from('pet-documents')
+      .remove([d.file_path])
+    if (storageError) {
+      setMessage(storageError.message)
+      return
+    }
+    const { error: rowError } = await supabase
+      .from('pet_documents')
+      .delete()
+      .eq('id', d.id)
+    if (rowError) setMessage(rowError.message)
+    else setDocs((prev) => prev.filter((x) => x.id !== d.id))
+  }
+
   async function openDoc(path: string) {
     const { data, error } = await supabase.storage
       .from('pet-documents')
@@ -142,16 +160,14 @@ export default function PetDocuments({ petId }: { petId: string }) {
                 {(d.size_bytes / 1024 / 1024).toFixed(2)} MB
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => openDoc(d.file_path)}
+            <div className="flex gap-3"><button type="button" onClick={() => openDoc(d.file_path)}
               className="text-sm underline"
             >
-              Abrir
-            </button>
+              Abrir</button><button type="button" onClick={() => deleteDoc(d)} className="text-sm text-red-600 underline">Excluir</button></div>
           </li>
         ))}
       </ul>
     </section>
   )
 }
+

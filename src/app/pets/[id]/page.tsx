@@ -102,6 +102,13 @@ function PetHealthContent() {
     setSaving(false)
   }
 
+  async function deleteRecord(id: string, title: string) {
+    if (!window.confirm('Excluir o registro "' + title + '"? Esta ação não pode ser desfeita.')) return
+    const { error } = await supabase.from('health_records').delete().eq('id', id)
+    if (error) setMessage(error.message)
+    else setRecords((prev) => prev.filter((r) => r.id !== id))
+  }
+
   if (loading) return <main className="p-6">Carregando...</main>
 
   return (
@@ -192,6 +199,7 @@ function PetHealthContent() {
                   </p>
                 )}
                 {r.notes && <p className="text-sm">{r.notes}</p>}
+                <button type="button" onClick={() => deleteRecord(r.id, r.title)} className="mt-2 text-sm text-red-600 underline">Excluir</button>
               </li>
             ))}
           </ul>
@@ -212,4 +220,5 @@ export default function PetHealthPage() {
     </Suspense>
   )
 }
+
 
