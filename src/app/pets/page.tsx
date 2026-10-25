@@ -85,7 +85,7 @@ export default function PetsPage() {
   return (
     <main className="mx-auto max-w-md space-y-6 p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Meus pets</h1>
+        <div><h1 className="text-2xl font-bold">Meus pets</h1><Link href="/lembretes" className="text-sm underline">Lembretes</Link></div>
         <button onClick={handleSignOut} className="text-sm underline">
           Sair
         </button>
@@ -171,4 +171,5 @@ export default function PetsPage() {
     </main>
   )
 }
+
 
